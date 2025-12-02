@@ -2,17 +2,18 @@
 
 import Image from "next/image";
 import React, { useState, useEffect } from "react";
-
+import { useRouter } from 'next/navigation'
 
 export default function Home() {
   const [rooms, setRooms] = useState<{ id: string, name: string; capacity: number }[]>([]);
+  const router = useRouter()
   useEffect(() => {
     async function getRooms() {
       const new_rooms = await fetch('/api/rooms');
       const new_rooms_json = await new_rooms.json();
       console.log(new_rooms_json);
       setRooms(new_rooms_json.rooms);
-    
+
     }
     getRooms();
   }, []
@@ -32,6 +33,9 @@ export default function Home() {
         const err = await res.json().catch(() => ({ error: res.statusText }));
         throw new Error(err?.error ?? "booking_failed");
       }
+
+      router.refresh();
+
     } catch (e: any) {
       console.error("Booking error:", e);
       alert("Failed to book room: " + (e?.message ?? "unknown error"));
