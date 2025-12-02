@@ -5,12 +5,13 @@ import React, { useState, useEffect } from "react";
 
 
 export default function Home() {
-  const [rooms, setRooms] = useState<{ name: string; capacity: number }[]>([]);
+  const [rooms, setRooms] = useState<{ id: string, name: string; capacity: number }[]>([]);
   useEffect(() => {
     async function getRooms() {
       const new_rooms = await fetch('/api/rooms');
-      console.log(new_rooms);
-      setRooms((await new_rooms.json()).rooms);
+      const new_rooms_json = await new_rooms.json();
+      console.log(new_rooms_json);
+      setRooms(new_rooms_json.rooms);
     
     }
     getRooms();
@@ -19,10 +20,22 @@ export default function Home() {
 
   const [booked, setBooked] = useState<string[]>([]);
 
-  function handleBook(room: { name: string; capacity: number }) {
-    if (booked.includes(room.name)) return;
-    setBooked((p) => [...p, room.name]);
-    alert(`Booked ${room.name} (capacity ${room.capacity})`);
+  async function handleBook(room: { id: string; name: string; capacity: number }) {
+    try {
+      const res = await fetch("/api/room", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: room.id }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: res.statusText }));
+        throw new Error(err?.error ?? "booking_failed");
+      }
+    } catch (e: any) {
+      console.error("Booking error:", e);
+      alert("Failed to book room: " + (e?.message ?? "unknown error"));
+    }
   }
 
 
@@ -50,7 +63,7 @@ export default function Home() {
               </thead>
               <tbody>
                 {rooms.map((room) => (
-                  <tr key={room.name} className="odd:bg-white even:bg-gray-50 dark:odd:bg-transparent dark:even:bg-zinc-950">
+                  <tr key={room.id} className="odd:bg-white even:bg-gray-50 dark:odd:bg-transparent dark:even:bg-zinc-950">
                     <td className="border-t px-4 py-3 text-sm text-zinc-800 dark:text-zinc-200">
                       {room.name}
                     </td>
@@ -60,7 +73,6 @@ export default function Home() {
                     <td className="border-t px-4 py-3 text-sm text-zinc-800 dark:text-zinc-200 flex items-center justify-center">
                       <button
                         onClick={() => handleBook(room)}
-                        disabled={booked.includes(room.name)}
                         className="inline-flex items-center gap-2 rounded px-3 py-1 text-sm font-medium bg-foreground text-background disabled:opacity-50"
                       >
                         {booked.includes(room.name) ? "Booked" : "Book"}
