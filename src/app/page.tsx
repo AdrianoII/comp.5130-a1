@@ -1,14 +1,21 @@
 "use client";
 
 import Image from "next/image";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+
 
 export default function Home() {
-  const rooms = [
-    { name: "Conference A", capacity: 12 },
-    { name: "Meeting B", capacity: 6 },
-    { name: "Focus Room", capacity: 2 },
-  ];
+  const [rooms, setRooms] = useState<{ name: string; capacity: number }[]>([]);
+  useEffect(() => {
+    async function getRooms() {
+      const new_rooms = await fetch('/api/rooms');
+      console.log(new_rooms);
+      setRooms((await new_rooms.json()).rooms);
+    
+    }
+    getRooms();
+  }, []
+  );
 
   const [booked, setBooked] = useState<string[]>([]);
 
