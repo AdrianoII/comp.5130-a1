@@ -34,7 +34,7 @@ export default function Home() {
         throw new Error(err?.error ?? "booking_failed");
       }
 
-      router.refresh();
+      window.location.reload();
 
     } catch (e: any) {
       console.error("Booking error:", e);
